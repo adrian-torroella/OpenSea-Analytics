@@ -2,7 +2,7 @@ const { MessageEmbed } = require('discord.js');
 const { MongoClient } = require('mongodb');
 const moment = require('moment');
 
-const uri = "mongodb+srv://Bugs_Bunny:lolgamer99@cluster0.uof7m.mongodb.net/test?retryWrites=true&w=majority";
+const uri = "mongodb+srv://Loves_Computer:43lFPT2Z5vDISZ3W@fc-cluster-0.9bdrd.mongodb.net/NFT-Collection?retryWrites=true&w=majority";
 
 const displayListOfDocuments = documents => {
     const fields = documents.map(document => ([
@@ -26,7 +26,7 @@ module.exports = async interaction => {
             console.log(e);
             return interaction.editReply('An Error occured, try again later');
         }
-        const collection = mongoClient.db('test').collection('test');
+        const collection = mongoClient.db('NFT-Database').collection('NFT Collections');
         const cursor = collection.find({});
         if (await cursor.count() === 0) {
             return interaction.editReply('No documents found!');

@@ -1,7 +1,7 @@
 const displayData = require('./utils/displaydata.js');
 const { MongoClient } = require('mongodb');
 
-const uri = "mongodb+srv://Bugs_Bunny:lolgamer99@cluster0.uof7m.mongodb.net/test?retryWrites=true&w=majority";
+const uri = "mongodb+srv://Loves_Computer:43lFPT2Z5vDISZ3W@fc-cluster-0.9bdrd.mongodb.net/NFT-Collection?retryWrites=true&w=majority";
 
 module.exports = async interaction => {      
     const mongoClient = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -20,7 +20,7 @@ module.exports = async interaction => {
                     interaction.followUp('An error occured');
                 return;
             }
-            const collection = mongoClient.db('test').collection('test');
+            const collection = mongoClient.db('NFT-Database').collection('NFT Collections');
             const returnedCollection = await collection.findOne({
                 collection: enteredCollection,
             });

@@ -4,8 +4,7 @@ const rax = require('retry-axios');
 const displayData = require('./utils/displaydata.js')
 const { MongoClient } = require('mongodb');
 
-const uri = "mongodb+srv://Bugs_Bunny:lolgamer99@cluster0.uof7m.mongodb.net/test?retryWrites=true&w=majority";
-
+const uri = "mongodb+srv://Loves_Computer:43lFPT2Z5vDISZ3W@fc-cluster-0.9bdrd.mongodb.net/NFT-Collection?retryWrites=true&w=majority";
 const raxConfig = {
     retry: 5,
     retryDelay: 5000,
@@ -302,7 +301,7 @@ module.exports = async interaction => {
         mongoClient.connect(async err => {
             if(err)
                 return console.log(err);
-            const collection = mongoClient.db('test').collection('test');
+            const collection = mongoClient.db('NFT-Database').collection('NFT Collections');
             const timestamp = Date.now();
             await collection.replaceOne({
                 collection: enteredCollection,
