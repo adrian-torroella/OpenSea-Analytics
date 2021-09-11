@@ -54,47 +54,21 @@ const getContractAddress = async enteredCollection => {
     return response.data.assets[0].asset_contract.address;
 };
 
-const getLatestSalePrice = async (address, tokenId) =>{
-    const eventsEndpoint = 'https://api.opensea.io/api/v1/events';
-    const [lastSale, lastBuy] = await Promise.all([
-        axios.get(eventsEndpoint, {
-            raxConfig,
-            params: {
-                asset_contract_address: address,
-                token_id: tokenId,
-                only_opensea: true,
-                event_type: 'created',
-                limit: 1,
-                offset: 0,
-            }
-        }),
-        axios.get(eventsEndpoint, {
-            raxConfig,
-            params: {
-                asset_contract_address: address,
-                token_id: tokenId,
-                only_opensea: true,
-                event_type: 'successful',
-                limit: 1,
-                offset: 0,
-            }
-        }),
-    ]);
-    if(lastSale.data.asset_events.length === 0)
+const getLatestSalePrice = asset =>{
+    if (asset.sell_orders === null)
         return null;
-    if(lastSale.data.asset_events.auction_type === 'english')
-        return null;
-    if(lastBuy.data.asset_events.length !== 0){
-        const lastBuyTime = new Date(lastBuy.data.asset_events[0].created_date);
-        const lastSaleTime = new Date(lastSale.data.asset_events[0].created_date);
-        if(lastBuyTime > lastSaleTime)
+    if(asset.last_sale !== null){
+        lastBuyDate = new Date(asset.last_sale.created_date);
+        lastSaleDate = new Date(asset.sell_orders[0].created_date);
+        if (lastBuyDate > lastSaleDate)
             return null;
     }
-
+    if(asset.sell_orders[0].maker_relayer_fee === '0')
+        return null;
     return {
-        price: parseFloat(lastSale.data.asset_events[0].starting_price),
-        ethPriceConversion: lastSale.data.asset_events[0].payment_token.eth_price,
-        decimal: lastSale.data.asset_events[0].payment_token.decimals,
+        price: parseFloat(asset.sell_orders[0].current_price),
+        ethPriceConversion: asset.sell_orders[0].payment_token_contract.eth_price,
+        decimals: asset.sell_orders[0].payment_token_contract.decimals,
     };
 };
 
@@ -144,13 +118,13 @@ module.exports = async interaction => {
                 for(const response of responses){
                     if(response.data.assets.length === 0)
                         continue;
-                    const priceResults = await response.data.assets.map(asset => getLatestSalePrice(asset.asset_contract.address, asset.token_id));
-                    for(const priceResult of priceResults){
-                        if(priceResult === null)
+                    for(const asset of response.data.assets){
+                        const priceResults = getLatestSalePrice(asset);
+                        if(priceResults === null)
                             continue;
-                        const { price, ethPriceConversion, decimals } = priceResult;
+                        const { price, ethPriceConversion, decimals } = priceResults;
                         const ethPrice = price * ethPriceConversion / Math.pow(10, decimals);
-                        data.push(ethPrice);
+                        data.push(ethPrice);    
                     }
                 }
                 offset += 10 * 50;
@@ -193,7 +167,7 @@ module.exports = async interaction => {
                     if(response.data.assets.length === 0)
                         continue;
                     for(const asset of response.data.assets){   
-                        const priceResults = await getLatestSalePrice(asset.asset_contract.address, asset.token_id);
+                        const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null)
                             continue;
                         const { price, ethPriceConversion, decimals } = priceResults;
@@ -246,7 +220,7 @@ module.exports = async interaction => {
                     if(response.data.assets.length === 0)
                         continue;
                     for(const asset of response.data.assets){
-                        const priceResults = await getLatestSalePrice(asset.asset_contract.address, asset.token_id);
+                        const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null){
                             if(breakFromWhile){
                                 countItems++;
@@ -312,7 +286,7 @@ module.exports = async interaction => {
                     if(response.data.assets.length === 0)
                         continue;
                     for(const asset of response.data.assets){
-                        const priceResults = await getLatestSalePrice(asset.asset_contract.address, asset.token_id);
+                        const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null)
                             continue;
                         const { price, ethPriceConversion, decimals } = priceResults;
