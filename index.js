@@ -1,0 +1,57 @@
+const { Client, Intents } = require('discord.js');
+const discordClient = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const { TOKEN } = require('./config.json');
+
+const handleFetchCollectionInfo = require('./handle_commands/fetchcollectioninfo.js');
+const handleGetCollectionInfo = require('./handle_commands/getcollectioninfo.js');
+const handleListFetchedCollections = require('./handle_commands/listfetchedcollections.js');
+
+discordClient.on('ready', async () => {
+    Array.prototype.min = function() {
+        return Math.min.apply(null, this);
+    };
+    console.log(`Logged in as ${discordClient.user.tag}!`);
+});
+
+discordClient.on('guildCreate', async guild => {
+    const roles = await guild.roles.fetch();
+    let openseaAccessRole = roles.find(role => role.name === 'OpenSea Bot Access');
+    if(openseaAccessRole === undefined){
+        openseaAccessRole = (await guild.roles.create({
+            name: 'OpenSea Bot Access',
+            color: '#d91455',
+        }));
+    }
+    const commandsIds = (await discordClient.application.commands.fetch()).map(command => command.id);
+    await Promise.all(commandsIds.map(commandId => guild.commands.permissions.set({
+        command: commandId,
+        permissions: [{
+            id: openseaAccessRole.id,
+            type: 1,
+            permission: true,
+        }],
+    })));
+});
+
+discordClient.on('interactionCreate', async interaction => {
+    if(!interaction.isCommand()) return;
+    
+    if(interaction.commandName === 'ping') {
+      interaction.reply('Pong!');
+    }
+
+    if(interaction.commandName === 'fetchcollectioninfo'){
+        handleFetchCollectionInfo(interaction);
+    }
+    
+    if(interaction.commandName === 'getcollectioninfo'){
+        handleGetCollectionInfo(interaction);
+    }
+    
+    if(interaction.commandName === 'listfetchedcollections'){
+        handleListFetchedCollections(interaction);
+    }
+
+});
+
+discordClient.login(TOKEN);
