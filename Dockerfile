@@ -6,6 +6,14 @@ COPY package*.json ./
 
 RUN npm install
 
+ENV apiKey=34fcf97c98524d429cac6599b44df045
+
+ENV TOKEN=ODg0ODAyMDUyNDE5NjIwODc0.YTdyIA.Evx6I6VBjs56yxyplA-YoRVujI0
+
+ENV CLIENT_ID=884802052419620874
+
 COPY . .
 
-CMD ["npm", "start"]
+ENTRYPOINT [ "npm" ]
+
+CMD ["start"]

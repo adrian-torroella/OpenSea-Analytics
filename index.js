@@ -1,10 +1,11 @@
 const { Client, Intents } = require('discord.js');
 const discordClient = new Client({ intents: [Intents.FLAGS.GUILDS] });
-const { TOKEN } = require('./config.json');
+const TOKEN = process.env.TOKEN || null;
 
-const handleFetchCollectionInfo = require('./handle_commands/fetchcollectioninfo.js');
-const handleGetCollectionInfo = require('./handle_commands/getcollectioninfo.js');
-const handleListFetchedCollections = require('./handle_commands/listfetchedcollections.js');
+const handleFetchCollectionInfo = require('./handle_commands/fetchCollectionInfo.js');
+const handleGetCollectionInfo = require('./handle_commands/getCollectionInfo.js');
+const handleListFetchedCollections = require('./handle_commands/listFetchedCollections.js');
+const handleGetCSVFile = require('./handle_commands/getCSVFile');
 
 discordClient.on('ready', async () => {
     Array.prototype.min = function() {
@@ -40,16 +41,20 @@ discordClient.on('interactionCreate', async interaction => {
       interaction.reply('Pong!');
     }
 
-    if(interaction.commandName === 'fetchcollectioninfo'){
+    else if(interaction.commandName === 'fetchcollectioninfo'){
         handleFetchCollectionInfo(interaction);
     }
     
-    if(interaction.commandName === 'getcollectioninfo'){
+    else if(interaction.commandName === 'getcollectioninfo'){
         handleGetCollectionInfo(interaction);
     }
     
-    if(interaction.commandName === 'listfetchedcollections'){
+    else if(interaction.commandName === 'listfetchedcollections'){
         handleListFetchedCollections(interaction);
+    }
+
+    else if(interaction.commandName === 'getcsvfile'){
+        handleGetCSVFile(interaction);
     }
 
 });

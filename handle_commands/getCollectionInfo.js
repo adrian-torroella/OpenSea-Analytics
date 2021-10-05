@@ -1,4 +1,4 @@
-const displayData = require('./utils/displaydata.js');
+const displayData = require('./utils/displayData.js');
 const { MongoClient } = require('mongodb');
 
 const uri = "mongodb+srv://Loves_Computer:43lFPT2Z5vDISZ3W@fc-cluster-0.9bdrd.mongodb.net/NFT-Collection?retryWrites=true&w=majority";
@@ -27,7 +27,7 @@ module.exports = async interaction => {
             mongoClient.close();
             if(returnedCollection === null)
                 return interaction.followUp(`${enteredCollection} is not found, try using /fetchcollectioninfo`);
-            displayData(interaction, returnedCollection.data, returnedCollection.timestamp);
+            displayData(interaction, returnedCollection.prices, returnedCollection.timestamp);
         });    
     }
     catch(e){

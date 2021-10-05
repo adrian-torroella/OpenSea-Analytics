@@ -34,7 +34,7 @@ module.exports = async interaction => {
         const documents = await cursor.toArray();
         interaction.editReply({
             content: ' ',
-            embeds: [displayListOfDocuments(documents)]
+            embeds: [displayListOfDocuments(documents)],
         });       
     });
 }

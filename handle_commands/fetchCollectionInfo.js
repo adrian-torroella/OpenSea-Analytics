@@ -1,7 +1,7 @@
 const axios = require('axios');
 const Qs = require('qs');
 const rax = require('retry-axios');
-const displayData = require('./utils/displaydata.js')
+const displayData = require('./utils/displayData.js')
 const { MongoClient } = require('mongodb');
 
 const uri = "mongodb+srv://Loves_Computer:43lFPT2Z5vDISZ3W@fc-cluster-0.9bdrd.mongodb.net/NFT-Collection?retryWrites=true&w=majority";
@@ -18,7 +18,10 @@ const collectionNameExists = async enteredCollection => {
         params:{
             collection: enteredCollection,
             limit: 1,
-        }
+        },
+        headers: {
+            'X-API-KEY': process.env.apiKey || null,
+        },
     });
     if (result.data.assets.length === 0){
         return {
@@ -36,6 +39,9 @@ const getNumberOfItems = async (address, tokenId) => {
     const assetEndpoint = `https://api.opensea.io/api/v1/asset/${address}/${tokenId}`;
     const result = await axios.get(assetEndpoint,{
         raxConfig,
+        headers: {
+            'X-API-KEY': process.env.apiKey || null,
+        },
     });
     return result.data.collection.stats.total_supply;
 }
@@ -44,11 +50,14 @@ const getContractAddress = async enteredCollection => {
     const assetsEndpoint = 'https://api.opensea.io/api/v1/assets';
     const response = await axios.get(assetsEndpoint, {
         raxConfig,
-        params:{
+        params: {
             collection: enteredCollection,
             offset: 0,
             limit: 1,
-        }
+        },
+        headers: {
+            'X-API-KEY': process.env.apiKey || null,
+        },
     });
     return response.data.assets[0].asset_contract.address;
 };
@@ -81,7 +90,8 @@ module.exports = async interaction => {
         interaction.editReply(`Fetching data from ${enteredCollection}. Please wait, this could take a long time`);
         const numberOfItems = await getNumberOfItems(result.address, result.tokenId);
         const assetsEndpoint = 'https://api.opensea.io/api/v1/assets';
-        const data = [];
+        const prices = [];
+        const traits = {};
         rax.attach();
         if (numberOfItems <= 1e4 + 50){
             let offset = 0;
@@ -97,7 +107,10 @@ module.exports = async interaction => {
                         params: {
                             ...params,
                             offset,
-                        }
+                        },
+                        headers: {
+                            'X-API-KEY': process.env.apiKey || null,
+                        },
                     }));
                 }
                 else{
@@ -107,7 +120,10 @@ module.exports = async interaction => {
                             params: {
                                 ...params,
                                 offset: i
-                            }
+                            },
+                            headers: {
+                                'X-API-KEY': process.env.apiKey || null,
+                            },
                         }));
                     }
                 }
@@ -118,12 +134,18 @@ module.exports = async interaction => {
                     if(response.data.assets.length === 0)
                         continue;
                     for(const asset of response.data.assets){
+                        const assetTraits = asset.traits;
+                        traits[asset.token_id.toString()] = {};
+                        for(const trait of assetTraits){
+                            traits[asset.token_id.toString()][trait.trait_type.toLowerCase()] = trait.value.toLowerCase();
+                        }
                         const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null)
                             continue;
                         const { price, ethPriceConversion, decimals } = priceResults;
                         const ethPrice = price * ethPriceConversion / Math.pow(10, decimals);
-                        data.push(ethPrice);    
+                        prices.push(ethPrice);    
+                        
                     }
                 }
                 offset += 10 * 50;
@@ -146,7 +168,10 @@ module.exports = async interaction => {
                         params: {
                             ...params,
                             offset,
-                        }
+                        },
+                        headers: {
+                            'X-API-KEY': process.env.apiKey || null,
+                        },
                     }));
                 }
                 else{
@@ -156,7 +181,10 @@ module.exports = async interaction => {
                             params: {
                                 ...params,
                                 offset: i
-                            }
+                            },
+                            headers: {
+                                'X-API-KEY': process.env.apiKey || null,
+                            },
                         }));
                     }
                 }
@@ -165,13 +193,18 @@ module.exports = async interaction => {
                     countItems += response.data.assets.length;
                     if(response.data.assets.length === 0)
                         continue;
-                    for(const asset of response.data.assets){   
+                    for(const asset of response.data.assets) {
+                        const assetTraits = asset.traits;
+                        traits[asset.token_id.toString()] = {};
+                        for(const trait of assetTraits) {
+                            traits[asset.token_id.toString()][trait.trait_type.toLowerCase()] = trait.value.toLowerCase();
+                        }   
                         const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null)
                             continue;
                         const { price, ethPriceConversion, decimals } = priceResults;
                         const ethPrice = price * ethPriceConversion / Math.pow(10, decimals);
-                        data.push(ethPrice);
+                        prices.push(ethPrice);
                     }
                 }
                 offset += 10 * 50;
@@ -191,7 +224,10 @@ module.exports = async interaction => {
                         params: {
                             ...params,
                             offset,
-                        }
+                        },
+                        headers: {
+                            'X-API-KEY': process.env.apiKey || null,
+                        },
                     }));
                 }
                 else{
@@ -201,7 +237,10 @@ module.exports = async interaction => {
                             params: {
                                 ...params,
                                 offset: i
-                            }
+                            },
+                            headers: {
+                                'X-API-KEY': process.env.apiKey || null,
+                            },
                         }));
                     }
                 }
@@ -218,7 +257,12 @@ module.exports = async interaction => {
                     }
                     if(response.data.assets.length === 0)
                         continue;
-                    for(const asset of response.data.assets){
+                    for(const asset of response.data.assets) {
+                        const assetTraits = asset.traits;
+                        traits[asset.token_id.toString()] = {};
+                        for(const trait of assetTraits){
+                            traits[asset.token_id.toString()][trait.trait_type.toLowerCase()] = trait.value.toLowerCase();
+                        }
                         const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null){
                             if(breakFromWhile){
@@ -231,7 +275,7 @@ module.exports = async interaction => {
                         }
                         const { price, ethPriceConversion, decimals } = priceResults;                        
                         const ethPrice = price * ethPriceConversion / Math.pow(10, decimals);
-                        data.push(ethPrice);
+                        prices.push(ethPrice);
                         if(breakFromWhile){
                             countItems++;
                         }
@@ -276,7 +320,10 @@ module.exports = async interaction => {
                         params:{
                             ...params,
                             token_ids: tokenIdRange,
-                        }
+                        },
+                        headers: {
+                            'X-API-KEY': process.env.apiKey || null,
+                        },
                     });
                 });
                 const responses = await Promise.all(requests);
@@ -285,12 +332,17 @@ module.exports = async interaction => {
                     if(response.data.assets.length === 0)
                         continue;
                     for(const asset of response.data.assets){
+                        const assetTraits = asset.traits;
+                        traits[asset.token_id.toString()] = {};
+                        for(const trait of assetTraits){
+                            traits[asset.token_id.toString()][trait.trait_type.toLowerCase()] = trait.value.toLowerCase();
+                        }
                         const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null)
                             continue;
                         const { price, ethPriceConversion, decimals } = priceResults;
                         const ethPrice = price * ethPriceConversion / Math.pow(10, decimals);
-                        data.push(ethPrice);
+                        prices.push(ethPrice);
                     }
                 }
                 currentTokenId += 10 * 30;
@@ -308,12 +360,13 @@ module.exports = async interaction => {
             }, {
                 collection: enteredCollection,
                 timestamp: Date.now(),    
-                data,
+                prices,
+                traits,
             }, {
                 upsert: true,
             });
             mongoClient.close();
-            displayData(interaction, data, timestamp);
+            displayData(interaction, prices, timestamp);
         });
     }
     catch(e){
