@@ -11,7 +11,7 @@ module.exports = async interaction => {
     const traitsString = interaction.options.getString('traits');
 
     await interaction.deferReply();
-    await interaction.editReply(`Generating CSV file for ${enteredCollection}, please wait.`);
+    await interaction.editReply(`Searching for ${enteredCollection}`)
     try{
         mongoClient.connect(async e => {
             if(e){
@@ -31,21 +31,26 @@ module.exports = async interaction => {
             mongoClient.close();
             if(returnedCollection === null)
                 return interaction.followUp(`${enteredCollection} is not found, try using /fetchcollectioninfo`);
-            const traits = {
+            interaction.followUp(`Generating CSV file for ${enteredCollection} with tratis ${traitsString}, please wait.`);
+                const traits = {
                 ...returnedCollection.traits,
             };
             returnedCollection = null;
             const requiredTraits = parseTraitsString(traitsString);
             const id = await generateCSVFile(enteredCollection, traits, requiredTraits);
-            await interaction.editReply({
-                content: ' ',
-                files: [
-                    path.join('.', `${enteredCollection}-${id}.csv`),
-                ],
-            });
-            fs.promises.rm(path.join('.', `${enteredCollection}-${id}.csv`), {
-                force: true,
-            });
+            try{
+                await fs.promises.access(path.join('.', `${enteredCollection}-${id}.csv`), fs.constants.F_OK);
+                await interaction.followUp({
+                    content: ' ',
+                    files: [
+                        path.join('.', `${enteredCollection}-${id}.csv`),
+                    ],
+                });
+                fs.promises.rm(path.join('.', `${enteredCollection}-${id}.csv`));
+            }
+            catch {
+                interaction.followUp('Trait(s) not found')
+            }
         });    
     }
     catch(e){
