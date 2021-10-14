@@ -5,11 +5,8 @@ module.exports = traitsString => {
         };
         const traitsPairs = traitsString.toLowerCase().split(';').map(traitPair => traitPair.trim());
         for(const traitPair of traitsPairs){
-            const [traitName, traitValue] = traitPair.split(':').map(traitVariable => traitVariable.trim()).filter(trait => trait.length !== 0);
-            if(resultTraits.hasOwnProperty(traitName))
-                resultTraits[traitName].push(traitValue)
-            else
-                resultTraits[traitName] = [traitValue];
+            const [traitName, traitValues] = traitPair.split(':').map(traitVariable => traitVariable.trim()).filter(trait => trait.length !== 0);
+            resultTraits[traitName] = traitValues.split(',').map(traitValue => traitValue.trim()).filter(traitValue => traitValue.length !== 0);
         }
         return resultTraits;
     }

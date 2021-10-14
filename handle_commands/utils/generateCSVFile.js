@@ -1,14 +1,14 @@
 const path = require('path');
 const fs = require('fs');
 
-module.exports = async (enteredCollection, traits, requiredTraits) => {
+module.exports = async (enteredCollection, collectionTraits, requiredTraits) => {
     const completed = [];
     const id = Number(Date.now());
     if(requiredTraits.pairs){
-        for(const tokenId of Object.keys(traits)){
+        for(const tokenId of Object.keys(collectionTraits)){
             const traitsFound = [];
-            for(const traitName of Object.keys(traits[tokenId])){
-                const traitValue = traits[tokenId][traitName];
+            for(const traitName of Object.keys(collectionTraits[tokenId])){
+                const traitValue = collectionTraits[tokenId][traitName];
                 if(requiredTraits.hasOwnProperty(traitName) && requiredTraits[traitName].includes(traitValue))
                     traitsFound.push(`${traitName}:${traitValue}`);
             }
@@ -24,10 +24,10 @@ module.exports = async (enteredCollection, traits, requiredTraits) => {
         await Promise.all(completed);
     }
     else{
-        for(const tokenId of Object.keys(traits)){
+        for(const tokenId of Object.keys(collectionTraits)){
             const traitsFound = [];
-            for(const traitName of Object.keys(traits[tokenId])){
-                const traitValue = traits[tokenId][traitName];
+            for(const traitName of Object.keys(collectionTraits[tokenId])){
+                const traitValue = collectionTraits[tokenId][traitName];
                 if(requiredTraits.hasOwnProperty(traitValue))
                     traitsFound.push(traitValue);
             }
