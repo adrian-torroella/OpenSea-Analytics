@@ -137,7 +137,7 @@ module.exports = async interaction => {
                         const assetTraits = asset.traits;
                         traits[asset.token_id.toString()] = {};
                         for(const trait of assetTraits){
-                            traits[asset.token_id.toString()][trait.trait_type.toLowerCase()] = trait.value.toLowerCase();
+                            traits[asset.token_id.toString()][trait.trait_type.toString().toLowerCase()] = trait.value.toString().toLowerCase();
                         }
                         const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null)
@@ -197,7 +197,7 @@ module.exports = async interaction => {
                         const assetTraits = asset.traits;
                         traits[asset.token_id.toString()] = {};
                         for(const trait of assetTraits) {
-                            traits[asset.token_id.toString()][trait.trait_type.toLowerCase()] = trait.value.toLowerCase();
+                            traits[asset.token_id.toString()][trait.trait_type.toString().toLowerCase()] = trait.value.toString().toLowerCase();
                         }   
                         const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null)
@@ -261,7 +261,7 @@ module.exports = async interaction => {
                         const assetTraits = asset.traits;
                         traits[asset.token_id.toString()] = {};
                         for(const trait of assetTraits){
-                            traits[asset.token_id.toString()][trait.trait_type.toLowerCase()] = trait.value.toLowerCase();
+                            traits[asset.token_id.toString()][trait.trait_type.toString().toLowerCase()] = trait.value.toString().toLowerCase();
                         }
                         const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null){
@@ -335,7 +335,7 @@ module.exports = async interaction => {
                         const assetTraits = asset.traits;
                         traits[asset.token_id.toString()] = {};
                         for(const trait of assetTraits){
-                            traits[asset.token_id.toString()][trait.trait_type.toLowerCase()] = trait.value.toLowerCase();
+                            traits[asset.token_id.toString()][trait.trait_type.toString().toLowerCase()] = trait.value.toString().toLowerCase();
                         }
                         const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null)
