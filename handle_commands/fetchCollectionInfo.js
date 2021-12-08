@@ -1,48 +1,26 @@
 const axios = require('axios');
 const Qs = require('qs');
 const rax = require('retry-axios');
-const displayData = require('./utils/displayData.js')
-const { MongoClient } = require('mongodb');
+const mongoClient = require('../db');
 
-const uri = "mongodb+srv://Loves_Computer:43lFPT2Z5vDISZ3W@fc-cluster-0.9bdrd.mongodb.net/NFT-Collection?retryWrites=true&w=majority";
+const displayData = require('./utils/displayData.js')
 const raxConfig = {
     retry: 5,
     retryDelay: 5000,
     backoffType: 'static',
 };
 
-const collectionNameExists = async enteredCollection => {
-    const assetsEndpoint = 'https://api.opensea.io/api/v1/assets';
-    const result = await axios.get(assetsEndpoint,{
+const getNumberOfItems = async enteredCollection => {
+    const collectionEndpoint = `https://api.opensea.io/api/v1/collection/${enteredCollection}`;
+    const result = await axios.get(collectionEndpoint, {
         raxConfig,
-        params:{
-            collection: enteredCollection,
-            limit: 1,
-        },
         headers: {
-            'X-API-KEY': process.env.apiKey || null,
+            'X-API-KEY': process.env.apiKey || undefined,
         },
     });
-    if (result.data.assets.length === 0){
-        return {
-            exists: false
-        };
+    if (result.status === 404){
+        return null;
     }
-    return {
-        exists: true,
-        address: result.data.assets[0].asset_contract.address,
-        tokenId: result.data.assets[0].token_id,
-    };   
-}
-
-const getNumberOfItems = async (address, tokenId) => {
-    const assetEndpoint = `https://api.opensea.io/api/v1/asset/${address}/${tokenId}`;
-    const result = await axios.get(assetEndpoint,{
-        raxConfig,
-        headers: {
-            'X-API-KEY': process.env.apiKey || null,
-        },
-    });
     return result.data.collection.stats.total_supply;
 }
 
@@ -56,7 +34,7 @@ const getContractAddress = async enteredCollection => {
             limit: 1,
         },
         headers: {
-            'X-API-KEY': process.env.apiKey || null,
+            'X-API-KEY': process.env.apiKey || undefined,
         },
     });
     return response.data.assets[0].asset_contract.address;
@@ -84,13 +62,12 @@ module.exports = async interaction => {
     const enteredCollection = interaction.options.getString('collection-name');
     await interaction.deferReply();
     try{
-        const result = await collectionNameExists(enteredCollection);
-        if (!result.exists)
+        const numberOfItems = await getNumberOfItems(enteredCollection);
+        if (!numberOfItems)
             return await interaction.editReply(`Collection doesn't exist or has no items`);
         interaction.editReply(`Fetching data from ${enteredCollection}. Please wait, this could take a long time`);
-        const numberOfItems = await getNumberOfItems(result.address, result.tokenId);
         const assetsEndpoint = 'https://api.opensea.io/api/v1/assets';
-        const prices = [];
+        const prices = {};
         const traits = {};
         rax.attach();
         if (numberOfItems <= 1e4 + 50){
@@ -109,7 +86,7 @@ module.exports = async interaction => {
                             offset,
                         },
                         headers: {
-                            'X-API-KEY': process.env.apiKey || null,
+                            'X-API-KEY': process.env.apiKey || undefined,
                         },
                     }));
                 }
@@ -122,7 +99,7 @@ module.exports = async interaction => {
                                 offset: i
                             },
                             headers: {
-                                'X-API-KEY': process.env.apiKey || null,
+                                'X-API-KEY': process.env.apiKey || undefined,
                             },
                         }));
                     }
@@ -144,8 +121,7 @@ module.exports = async interaction => {
                             continue;
                         const { price, ethPriceConversion, decimals } = priceResults;
                         const ethPrice = price * ethPriceConversion / Math.pow(10, decimals);
-                        prices.push(ethPrice);    
-                        
+                        prices[asset.token_id] = ethPrice;          
                     }
                 }
                 offset += 10 * 50;
@@ -170,7 +146,7 @@ module.exports = async interaction => {
                             offset,
                         },
                         headers: {
-                            'X-API-KEY': process.env.apiKey || null,
+                            'X-API-KEY': process.env.apiKey || undefined,
                         },
                     }));
                 }
@@ -183,7 +159,7 @@ module.exports = async interaction => {
                                 offset: i
                             },
                             headers: {
-                                'X-API-KEY': process.env.apiKey || null,
+                                'X-API-KEY': process.env.apiKey || undefined,
                             },
                         }));
                     }
@@ -204,7 +180,7 @@ module.exports = async interaction => {
                             continue;
                         const { price, ethPriceConversion, decimals } = priceResults;
                         const ethPrice = price * ethPriceConversion / Math.pow(10, decimals);
-                        prices.push(ethPrice);
+                        prices[asset.token_id] = ethPrice;          
                     }
                 }
                 offset += 10 * 50;
@@ -226,7 +202,7 @@ module.exports = async interaction => {
                             offset,
                         },
                         headers: {
-                            'X-API-KEY': process.env.apiKey || null,
+                            'X-API-KEY': process.env.apiKey || undefined,
                         },
                     }));
                 }
@@ -239,7 +215,7 @@ module.exports = async interaction => {
                                 offset: i
                             },
                             headers: {
-                                'X-API-KEY': process.env.apiKey || null,
+                                'X-API-KEY': process.env.apiKey || undefined,
                             },
                         }));
                     }
@@ -275,7 +251,7 @@ module.exports = async interaction => {
                         }
                         const { price, ethPriceConversion, decimals } = priceResults;                        
                         const ethPrice = price * ethPriceConversion / Math.pow(10, decimals);
-                        prices.push(ethPrice);
+                        prices[asset.token_id] = ethPrice;          
                         if(breakFromWhile){
                             countItems++;
                         }
@@ -322,7 +298,7 @@ module.exports = async interaction => {
                             token_ids: tokenIdRange,
                         },
                         headers: {
-                            'X-API-KEY': process.env.apiKey || null,
+                            'X-API-KEY': process.env.apiKey || undefined,
                         },
                     });
                 });
@@ -342,14 +318,13 @@ module.exports = async interaction => {
                             continue;
                         const { price, ethPriceConversion, decimals } = priceResults;
                         const ethPrice = price * ethPriceConversion / Math.pow(10, decimals);
-                        prices.push(ethPrice);
+                        prices[asset.token_id] = ethPrice;          
                     }
                 }
                 currentTokenId += 10 * 30;
                 console.log(currentTokenId);
             }
         }
-        const mongoClient = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
         mongoClient.connect(async err => {
             if(err)
                 return console.log(err);

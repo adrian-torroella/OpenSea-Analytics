@@ -1,8 +1,6 @@
 const { MessageEmbed } = require('discord.js');
-const { MongoClient } = require('mongodb');
+const mongoClient = require('../db');
 const moment = require('moment');
-
-const uri = "mongodb+srv://Loves_Computer:43lFPT2Z5vDISZ3W@fc-cluster-0.9bdrd.mongodb.net/NFT-Collection?retryWrites=true&w=majority";
 
 const displayListOfDocuments = documents => {
     const fields = documents.map(document => ([
@@ -20,7 +18,6 @@ const displayListOfDocuments = documents => {
 
 module.exports = async interaction => {
     await interaction.deferReply();
-    const mongoClient = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
     mongoClient.connect(async e => {
         if(e){
             console.log(e);

@@ -7,6 +7,7 @@ const handleGetCollectionInfo = require('./handle_commands/getCollectionInfo.js'
 const handleListFetchedCollections = require('./handle_commands/listFetchedCollections.js');
 const handleGetCSVFile = require('./handle_commands/getCSVFile');
 const handleGetComplexCSVFile = require('./handle_commands/getComplexCSVFile');
+const handleGetLowestListedPrice = require('./handle_commands/getLowestListedPrice');
 
 discordClient.on('ready', async () => {
     Array.prototype.min = function() {
@@ -60,6 +61,10 @@ discordClient.on('interactionCreate', async interaction => {
 
     else if(interaction.commandName === 'getcomplexcsvfile'){
         handleGetComplexCSVFile(interaction);
+    }
+
+    else if(interaction.commandName == 'get-lowest-listed-price'){
+        handleGetLowestListedPrice(interaction);
     }
 
 });

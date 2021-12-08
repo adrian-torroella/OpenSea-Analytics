@@ -1,5 +1,7 @@
 const { MessageEmbed } = require('discord.js');
 
+const min = prices => Math.min(...Object.values(prices));
+
 const inRange = (num, range) => num >= range[0] && num < range[1];
 
 const constructEmbed = ({ collection, timestamp, ranges, counts, nonDefaultMin }) => {
@@ -36,7 +38,7 @@ const constructEmbed = ({ collection, timestamp, ranges, counts, nonDefaultMin }
 module.exports = async (interaction, prices, timestamp) => {
     const ranges = [];
     const nonDefaultMin = interaction.options.getNumber('start') !== null;
-    const start = !nonDefaultMin ? prices.min() : interaction.options.getNumber('start');
+    const start = !nonDefaultMin ? min(prices) : interaction.options.getNumber('start');
     const collection = interaction.options.getString('collection-name');
     const step = interaction.options.getNumber('step');
     const numberOfSteps = interaction.options.getNumber('number-of-steps');
@@ -50,21 +52,21 @@ module.exports = async (interaction, prices, timestamp) => {
         i += step;
     }
     const counts = new Array(ranges.length + 1).fill(0);
-    for(const item of prices){
+    for(const item in prices){
         let flag = true;
         for(let i = 0; i < numberOfSteps; i++){
-            if(inRange(item, ranges[i])){
+            if(inRange(prices[item], ranges[i])){
                 counts[i]++;
                 flag = false;
                 break;
             }
         }
-        if(flag && item >= ranges[ranges.length - 1][1])
+        if(flag && prices[item] >= ranges[ranges.length - 1][1])
             counts[numberOfSteps]++;
     }
     if(nonDefaultMin){
         const sum = counts.reduce((a,b) => a + b, 0);
-        counts.push(prices.length - sum);
+        counts.push(Object.keys(prices).length - sum);
     }
     interaction.channel.send({
         content: ' ',

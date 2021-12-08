@@ -1,10 +1,7 @@
 const displayData = require('./utils/displayData.js');
-const { MongoClient } = require('mongodb');
-
-const uri = "mongodb+srv://Loves_Computer:43lFPT2Z5vDISZ3W@fc-cluster-0.9bdrd.mongodb.net/NFT-Collection?retryWrites=true&w=majority";
+const mongoClient = require('../db');
 
 module.exports = async interaction => {      
-    const mongoClient = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
     const enteredCollection = interaction.options.getString('collection-name');
     await interaction.deferReply();
     await interaction.editReply(`Getting data from ${enteredCollection}. Please wait`);
