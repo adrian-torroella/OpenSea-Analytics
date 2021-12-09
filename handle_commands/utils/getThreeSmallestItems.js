@@ -1,11 +1,17 @@
-module.exports = (prices, traits, requiredTrait) => {
+const filterRequiredTraits = (prices, traits, requiredTraitIndex, requiredTraitValue, isPair) => {
+    if(isPair)
+        return Object.entries(prices).filter(([key, value]) => Object.keys(traits[key]).includes(requiredTraitIndex) && traits[key][requiredTraitIndex].includes(requiredTraitValue));
+    return Object.entries(prices).filter(([key, value]) => Object.values(traits[key]).includes(requiredTraitIndex));
+}
+
+module.exports = (prices, traits, requiredTraitIndex, requiredTraitValue, isPair) => {
     let minOneValue = Infinity;
     let minOneKey = null;
     let minTwoValue = Infinity;
     let minTwoKey = null;
     let minThreeValue = Infinity;
     let minThreeKey = null;
-    for (const [key, value] of Object.entries(prices).filter(([key, value]) => Object.values(traits[key]).includes(requiredTrait))) {
+    for (const [key, value] of filterRequiredTraits(prices, traits, requiredTraitIndex, requiredTraitValue, isPair)) {
         if (value < minOneValue){
             minThreeValue = minTwoValue;
             minThreeKey = minTwoKey;

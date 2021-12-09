@@ -1,6 +1,45 @@
+const { MessageEmbed } = require('discord.js');
 const mongoClient = require('../db');
 const getThreeSmallestItems = require('./utils/getThreeSmallestItems');
 const parseTraitsString = require('./utils/parseTraitsString');
+
+const generateEmbedFeilds = (lowestPrices, isPair) => {
+    const fields = [];
+    for(const trait in lowestPrices){
+        if(isPair){
+            fields.push({
+                name: `${trait.split(':')[0][0].toUpperCase()}${trait.split(':')[0].slice(1)} : ${trait.split(':')[1][0].toUpperCase()}${trait.split(':')[1].slice(1)}`,
+                value: '============================',
+            });
+        }
+        else{
+            fields.push({
+                name: `${trait[0].toUpperCase()}${trait.slice(1)}`,
+                value: '============================',
+            });
+        }
+        for(let i = 0; i < 3; i++){
+            fields.push({
+                name: `Token Id: ${lowestPrices[trait][i].split(':')[0]}`,
+                value: `Price: ${lowestPrices[trait][i].split(':')[1]} ETH`,
+            });
+        }
+        fields.push({
+            name: '\u200B',
+            value: '\u200B',
+        });
+    }
+    fields.pop();
+    return fields;
+}
+
+const displayPricesEmbed = (lowestPrices, isPair) => {
+    return new MessageEmbed()
+        .setColor('#0099ff')
+        .setTitle('Lowest three listed prices')
+        .setTimestamp(new Date())
+        .addFields(...generateEmbedFeilds(lowestPrices, isPair))
+};
 
 module.exports = async interaction => {
     const enteredCollection = interaction.options.getString('collection-name');
@@ -30,13 +69,23 @@ module.exports = async interaction => {
             interaction.followUp(`Getting lowest prices, please wait.`);
             const requiredTraits = parseTraitsString(traitsString);
             const lowestThreePrices = {};
-            for(const requiredTrait in requiredTraits){
-                if(requiredTrait === 'pairs')
+            const isPair = requiredTraits.pairs;
+            for(const requiredTraitIndex in requiredTraits){
+                if(requiredTraitIndex === 'pairs')
                     continue;
-                lowestThreePrices[requiredTrait] = getThreeSmallestItems(returnedCollection.prices, returnedCollection.traits, requiredTrait);
+                if(isPair){
+                    for(const requiredTrait of requiredTraits[requiredTraitIndex]){
+                        lowestThreePrices[`${requiredTraitIndex}:${requiredTrait}`] = getThreeSmallestItems(returnedCollection.prices, returnedCollection.traits, requiredTraitIndex, requiredTrait, isPair);
+                    }
+                }
+                else
+                    lowestThreePrices[requiredTraitIndex] = getThreeSmallestItems(returnedCollection.prices, returnedCollection.traits, requiredTraitIndex, requiredTraits[requiredTraitIndex], isPair);
             }
-            interaction.followUp(JSON.stringify(lowestThreePrices));
-        });    
+            interaction.followUp({
+                content: ' ',
+                embeds: [displayPricesEmbed(lowestThreePrices, isPair)],
+            });
+        });   
     }
     catch(e){
         console.log(e);
