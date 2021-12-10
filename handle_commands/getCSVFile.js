@@ -30,9 +30,12 @@ module.exports = async interaction => {
             if(returnedCollection === null)
                 return interaction.followUp(`${enteredCollection} is not found, try using /fetchcollectioninfo`);
             interaction.followUp(`Generating CSV file for ${enteredCollection} with tratis ${traitsString}, please wait.`);
-                const traits = {
-                ...returnedCollection.traits,
-            };
+            const traits = {};
+            for(const tokenId in returnedCollection.assets){
+                traits[tokenId] = {
+                    ...returnedCollection.assets[tokenId].traits,
+                };
+            }
             returnedCollection = null;
             const requiredTraits = parseTraitsString(traitsString);
             const id = await generateCSVFile(enteredCollection, traits, requiredTraits);

@@ -60,7 +60,7 @@ module.exports = async interaction => {
                 return;
             }
             const collection = mongoClient.db('NFT-Database').collection('NFT Collections');
-            const returnedCollection = await collection.findOne({
+            let returnedCollection = await collection.findOne({
                 collection: enteredCollection,
             });
             mongoClient.close();
@@ -70,6 +70,16 @@ module.exports = async interaction => {
             const requiredTraits = parseTraitsString(traitsString);
             const lowestThreePrices = {};
             const isPair = requiredTraits.pairs;
+            const prices = {};
+            const traits = {};
+            for(const tokenId in returnedCollection.assets){
+                if(returnedCollection.assets[tokenId].price)
+                    prices[tokenId] = returnedCollection.assets[tokenId].price;
+                traits[tokenId] = {
+                    ...returnedCollection.assets[tokenId].traits,
+                };
+            }
+            returnedCollection = null;
             for(const requiredTraitIndex in requiredTraits){
                 if(requiredTraitIndex === 'pairs')
                     continue;

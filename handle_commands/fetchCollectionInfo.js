@@ -67,8 +67,7 @@ module.exports = async interaction => {
             return await interaction.editReply(`Collection doesn't exist or has no items`);
         interaction.editReply(`Fetching data from ${enteredCollection}. Please wait, this could take a long time`);
         const assetsEndpoint = 'https://api.opensea.io/api/v1/assets';
-        const prices = {};
-        const traits = {};
+        let assets = {};
         rax.attach();
         if (numberOfItems <= 1e4 + 50){
             let offset = 0;
@@ -112,16 +111,18 @@ module.exports = async interaction => {
                         continue;
                     for(const asset of response.data.assets){
                         const assetTraits = asset.traits;
-                        traits[asset.token_id.toString()] = {};
+                        assets[asset.token_id.toString()] = {
+                            traits: {},
+                        };
                         for(const trait of assetTraits){
-                            traits[asset.token_id.toString()][trait.trait_type.toString().toLowerCase()] = trait.value.toString().toLowerCase();
+                            assets[asset.token_id.toString()].traits[trait.trait_type.toString().toLowerCase()] = trait.value.toString().toLowerCase();
                         }
                         const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null)
                             continue;
                         const { price, ethPriceConversion, decimals } = priceResults;
                         const ethPrice = price * ethPriceConversion / Math.pow(10, decimals);
-                        prices[asset.token_id] = ethPrice;          
+                        assets[asset.token_id].price = ethPrice;          
                     }
                 }
                 offset += 10 * 50;
@@ -171,16 +172,18 @@ module.exports = async interaction => {
                         continue;
                     for(const asset of response.data.assets) {
                         const assetTraits = asset.traits;
-                        traits[asset.token_id.toString()] = {};
+                        assets[asset.token_id.toString()] = {
+                            traits: {},
+                        };
                         for(const trait of assetTraits) {
-                            traits[asset.token_id.toString()][trait.trait_type.toString().toLowerCase()] = trait.value.toString().toLowerCase();
+                            assets[asset.token_id.toString()].traits[trait.trait_type.toString().toLowerCase()] = trait.value.toString().toLowerCase();
                         }   
                         const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null)
                             continue;
                         const { price, ethPriceConversion, decimals } = priceResults;
                         const ethPrice = price * ethPriceConversion / Math.pow(10, decimals);
-                        prices[asset.token_id] = ethPrice;          
+                        assets[asset.token_id].price = ethPrice;          
                     }
                 }
                 offset += 10 * 50;
@@ -235,9 +238,11 @@ module.exports = async interaction => {
                         continue;
                     for(const asset of response.data.assets) {
                         const assetTraits = asset.traits;
-                        traits[asset.token_id.toString()] = {};
+                        assets[asset.token_id.toString()] = {
+                            traits: {},
+                        };
                         for(const trait of assetTraits){
-                            traits[asset.token_id.toString()][trait.trait_type.toString().toLowerCase()] = trait.value.toString().toLowerCase();
+                            assets[asset.token_id.toString()].traits[trait.trait_type.toString().toLowerCase()] = trait.value.toString().toLowerCase();
                         }
                         const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null){
@@ -251,7 +256,7 @@ module.exports = async interaction => {
                         }
                         const { price, ethPriceConversion, decimals } = priceResults;                        
                         const ethPrice = price * ethPriceConversion / Math.pow(10, decimals);
-                        prices[asset.token_id] = ethPrice;          
+                        assets[asset.token_id].price = ethPrice;          
                         if(breakFromWhile){
                             countItems++;
                         }
@@ -309,16 +314,18 @@ module.exports = async interaction => {
                         continue;
                     for(const asset of response.data.assets){
                         const assetTraits = asset.traits;
-                        traits[asset.token_id.toString()] = {};
+                        assets[asset.token_id.toString()] = {
+                            traits: {},
+                        };
                         for(const trait of assetTraits){
-                            traits[asset.token_id.toString()][trait.trait_type.toString().toLowerCase()] = trait.value.toString().toLowerCase();
+                            assets[asset.token_id.toString()].traits[trait.trait_type.toString().toLowerCase()] = trait.value.toString().toLowerCase();
                         }
                         const priceResults = getLatestSalePrice(asset);
                         if(priceResults === null)
                             continue;
                         const { price, ethPriceConversion, decimals } = priceResults;
                         const ethPrice = price * ethPriceConversion / Math.pow(10, decimals);
-                        prices[asset.token_id] = ethPrice;          
+                        assets[asset.token_id].price = ethPrice;          
                     }
                 }
                 currentTokenId += 10 * 30;
@@ -335,12 +342,17 @@ module.exports = async interaction => {
             }, {
                 collection: enteredCollection,
                 timestamp: Date.now(),    
-                prices,
-                traits,
+                assets,
             }, {
                 upsert: true,
             });
             mongoClient.close();
+            const prices = {};
+            for(const tokenId in assets){
+                if(assets[tokenId].price)
+                    prices[tokenId] = assets[tokenId].price;
+            }
+            assets = null;
             displayData(interaction, prices, timestamp);
         });
     }
