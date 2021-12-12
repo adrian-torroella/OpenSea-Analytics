@@ -10,7 +10,7 @@ const raxConfig = {
     backoffType: 'static',
 };
 
-const getNumberOfItems = async enteredCollection => {
+const getNumberOfItemsAndContractAddress = async enteredCollection => {
     const collectionEndpoint = `https://api.opensea.io/api/v1/collection/${enteredCollection}`;
     const result = await axios.get(collectionEndpoint, {
         raxConfig,
@@ -19,9 +19,15 @@ const getNumberOfItems = async enteredCollection => {
         },
     });
     if (result.status === 404){
-        return null;
+        return {
+            numberOfItems: null,
+            contractAddress: null,
+        }
     }
-    return result.data.collection.stats.total_supply;
+    return {
+        numberOfItems: result.data.collection.stats.total_supply,
+        contractAddress: result.data.collection.primary_asset_contracts.address,
+    }
 }
 
 const getContractAddress = async enteredCollection => {
@@ -62,7 +68,7 @@ module.exports = async interaction => {
     const enteredCollection = interaction.options.getString('collection-name');
     await interaction.deferReply();
     try{
-        const numberOfItems = await getNumberOfItems(enteredCollection);
+        const { numberOfItems, contractAddress } = await getNumberOfItemsAndContractAddress(enteredCollection);
         if (!numberOfItems)
             return await interaction.editReply(`Collection doesn't exist or has no items`);
         interaction.editReply(`Fetching data from ${enteredCollection}. Please wait, this could take a long time`);
@@ -341,6 +347,7 @@ module.exports = async interaction => {
                 collection: enteredCollection,
             }, {
                 collection: enteredCollection,
+                contractAddress,
                 timestamp: Date.now(),    
                 assets,
             }, {

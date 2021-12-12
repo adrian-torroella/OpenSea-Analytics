@@ -85,11 +85,11 @@ module.exports = async interaction => {
                     continue;
                 if(isPair){
                     for(const requiredTrait of requiredTraits[requiredTraitIndex]){
-                        lowestThreePrices[`${requiredTraitIndex}:${requiredTrait}`] = getThreeSmallestItems(returnedCollection.prices, returnedCollection.traits, requiredTraitIndex, requiredTrait, isPair);
+                        lowestThreePrices[`${requiredTraitIndex}:${requiredTrait}`] = getThreeSmallestItems(prices, traits, requiredTraitIndex, requiredTrait, isPair);
                     }
                 }
                 else
-                    lowestThreePrices[requiredTraitIndex] = getThreeSmallestItems(returnedCollection.prices, returnedCollection.traits, requiredTraitIndex, requiredTraits[requiredTraitIndex], isPair);
+                    lowestThreePrices[requiredTraitIndex] = getThreeSmallestItems(prices, traits, requiredTraitIndex, requiredTraits[requiredTraitIndex], isPair);
             }
             interaction.followUp({
                 content: ' ',
