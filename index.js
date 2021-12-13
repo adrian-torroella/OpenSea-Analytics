@@ -8,6 +8,11 @@ const handleListFetchedCollections = require('./handle_commands/listFetchedColle
 const handleGetCSVFile = require('./handle_commands/getCSVFile');
 const handleGetComplexCSVFile = require('./handle_commands/getComplexCSVFile');
 const handleGetLowestListedPrice = require('./handle_commands/getLowestListedPrice');
+const handleGetHighestOffersInfo = require('./handle_commands/getHighestOffersInfo');
+
+Object.filter = (obj, predicate) => Object.keys(obj)
+    .filter(key => predicate(obj[key]))
+    .reduce((res, key) => (res[key] = obj[key], res), {});
 
 discordClient.on('ready', async () => {
     Array.prototype.min = function() {
@@ -65,6 +70,10 @@ discordClient.on('interactionCreate', async interaction => {
 
     else if(interaction.commandName == 'get-lowest-listed-price'){
         handleGetLowestListedPrice(interaction);
+    }
+
+    else if(interaction.commandName === 'get-highest-offers-info'){
+        handleGetHighestOffersInfo(interaction);
     }
 
 });

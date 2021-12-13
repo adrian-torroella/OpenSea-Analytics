@@ -26,7 +26,7 @@ const getNumberOfItemsAndContractAddress = async enteredCollection => {
     }
     return {
         numberOfItems: result.data.collection.stats.total_supply,
-        contractAddress: result.data.collection.primary_asset_contracts.address,
+        contractAddress: result.data.collection.primary_asset_contracts[0].address,
     }
 }
 

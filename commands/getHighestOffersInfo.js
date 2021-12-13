@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = new SlashCommandBuilder()
-    .setName('get-highest-bids-info')
+    .setName('get-highest-offers-info')
     .setDescription('Show minumum, maximum and mean of highest bids on items with given trait')
 	.addStringOption(option => option.setName('collection-name')
         .setDescription('Enter a collection name')
