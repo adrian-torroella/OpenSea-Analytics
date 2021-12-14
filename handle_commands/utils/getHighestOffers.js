@@ -1,3 +1,5 @@
+const convertPrice = require('./convertPrice');
+
 module.exports = (assets, orders, tokenIdsMinorSlice) => {
     const highestOfferFound = {};
     for(const tokenId of tokenIdsMinorSlice){
@@ -5,7 +7,7 @@ module.exports = (assets, orders, tokenIdsMinorSlice) => {
     }
     for(const order of orders.orders){
         if(!highestOfferFound[order.asset.token_id]){
-            assets[order.asset.token_id].highestOffer = order.current_price;
+            assets[order.asset.token_id].highestOffer = convertPrice(order.current_price, order.payment_token_contract);
             highestOfferFound[order.asset.token_id] = true;
         }
     }

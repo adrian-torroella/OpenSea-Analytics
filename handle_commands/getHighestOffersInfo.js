@@ -1,7 +1,9 @@
 const mongoClient = require('../db');
+
 const parseTraitsString = require('./utils/parseTraitsString');
 const getSingleHighestOffer = require('./utils/getSingleHighestOffer');
 const getHighestOffers = require('./utils/getHighestOffers');
+const getMinMaxMedian = require('./utils/getMinMaxMedian');
 
 const filterRequiredTraits = (assets, requiredTraitIndex, requiredTraitValue, isPair) => {
     if(isPair)
@@ -12,7 +14,8 @@ const filterRequiredTraits = (assets, requiredTraitIndex, requiredTraitValue, is
 module.exports = async (interaction) => {
     const enteredCollection = interaction.options.getString('collection-name');
     const traitsString = interaction.options.getString('traits');
-    
+    const forceFetch = interaction.options.getBoolean('force-fetch');
+
     await interaction.deferReply();
     await interaction.editReply(`Searching for ${enteredCollection}`);
     try{
@@ -39,19 +42,23 @@ module.exports = async (interaction) => {
         if(returnedCollection === null)
             return interaction.followUp(`${enteredCollection} is not found, try using /fetchcollectioninfo`);
         
-        assets = returnedCollection.assets;
+        assets = {
+            ...returnedCollection.assets,
+        };
+
         contractAddress = returnedCollection.contractAddress;
         collectionName = returnedCollection.collection;
         returnedCollection = null;
 
-        if(!assets)
-            return;
-                   
-        assets = filterRequiredTraits(assets, requiredTraitIndex, requiredTrait[requiredTraitIndex], requiredTrait.pairs);
+        const filteredAssets = filterRequiredTraits(assets, requiredTraitIndex, requiredTrait[requiredTraitIndex], requiredTrait.pairs);
 
-        if(!Object.keys(assets).every(tokenId => assets[tokenId].highestOffer)){
+        if(Object.keys(filteredAssets).length === 0){
+            return interaction.followUp(`Trait ${requiredTrait[requiredTraitIndex] ? `${requiredTraitIndex} : ${requiredTrait[requiredTraitIndex]}` : `${requiredTraitIndex}`} doesn't exist`);
+        }
+
+        if(forceFetch || !Object.keys(filteredAssets).every(tokenId => filteredAssets[tokenId].hasOwnProperty('highestOffer'))){
             // Fetch
-            interaction.followUp(`Fetching information about offers for ${enteredCollection}, please waiat as this can take a long time`);
+            interaction.followUp(`Fetching information about offers for ${enteredCollection} with trait ${requiredTrait[requiredTraitIndex] ? `${requiredTraitIndex} : ${requiredTrait[requiredTraitIndex]}` : `${requiredTraitIndex}`}, please waiat as this can take a long time`);
 
             const axios = require('axios');
             const Qs = require('qs');
@@ -76,13 +83,17 @@ module.exports = async (interaction) => {
 
             const ordersEnpoint = `https://api.opensea.io/wyvern/v1/orders`;
             
-            const tokenIds = Object.keys(assets);
+            const tokenIds = Object.keys(filteredAssets);
             for(let i = 0; i < tokenIds.length; i += 5 * 10){
                 const requests = [];
                 const tokenIdsSlice = tokenIds.slice(i, i + 5 * 10 + 1);
+                if(tokenIdsSlice.length === 0)
+                    continue;
                 const tokenIdsMinorSlices = [];
                 for(let j = 0; j < 5; j++){
                     const tokenIdsMinorSlice = tokenIdsSlice.slice(j * 10, j * 10 + 10);
+                    if(tokenIdsMinorSlice.length === 0)
+                        continue;
                     tokenIdsMinorSlices.push(tokenIdsMinorSlice);
                     console.log(`Getting orders for ${tokenIdsMinorSlice}`);
                     requests.push(arrAxios.get(ordersEnpoint, {
@@ -106,7 +117,7 @@ module.exports = async (interaction) => {
                 }
                 const responses = (await Promise.all(requests)).map(response => response.data);
                 for(const [index, response] of Object.entries(responses)){
-                    const highestOfferFound = getHighestOffers(assets, response, tokenIdsMinorSlices[parseInt(index)]);
+                    const highestOfferFound = getHighestOffers(filteredAssets, response, tokenIdsMinorSlices[parseInt(index)]);
                     const tokenIdsWithNoOffersFound = Object.keys(highestOfferFound).filter(tokenId => !highestOfferFound[tokenId]);
                     const extraRequests = [];
                     for(const tokenId of tokenIdsWithNoOffersFound){
@@ -135,12 +146,17 @@ module.exports = async (interaction) => {
                         const extraResponses = await Promise.all(extraRequests);
                         console.log(`Found missing orders`);
                         for(const [index, response] of Object.entries(extraResponses)){
-                            assets[tokenIdsWithNoOffersFound[parseInt(index)]].highestOffer = getSingleHighestOffer(response.data);
+                            filteredAssets[tokenIdsWithNoOffersFound[parseInt(index)]].highestOffer = getSingleHighestOffer(response.data);
                         }
                     }
                 }
             }
             console.log(`Finished Fetching`);
+
+            for(const tokenId in filteredAssets){
+                assets[tokenId].highestOffer = filteredAssets[tokenId].highestOffer;
+            }
+            
             mongoClient.connect(async e => {
                 if(e){
                     console.log(e);
@@ -164,10 +180,11 @@ module.exports = async (interaction) => {
                     upsert: true,
                 });
                 mongoClient.close();
-                const { min, max, mean } = assets;
-                interaction.followUp(`min:${min} max:${max} mean:${mean}`);
             });
         }
+
+        const { min, max, median } = getMinMaxMedian(filteredAssets);
+        interaction.followUp(`Min : ${min} Max : ${max} Median : ${median}`);
     }
     catch(e){
         console.log(e);
