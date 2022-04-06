@@ -1,6 +1,7 @@
 require("dotenv").config();
-const { Client, Intents } = require("discord.js");
-const discordClient = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const discordClient = require("./client");
+const fetchQueue = require("./consumer");
+
 const TOKEN = process.env.TOKEN || null;
 
 const handleFetchCollectionInfo = require("./handle_commands/fetchCollectionInfo.js");
@@ -10,12 +11,6 @@ const handleGetCSVFile = require("./handle_commands/getCSVFile");
 const handleGetComplexCSVFile = require("./handle_commands/getComplexCSVFile");
 const handleGetLowestListedPrice = require("./handle_commands/getLowestListedPrice");
 const handleGetHighestOffersInfo = require("./handle_commands/getHighestOffersInfo");
-
-// Create Object.filter for convenience
-Object.filter = (obj, predicate) =>
-  Object.keys(obj)
-    .filter((key) => predicate(obj[key]))
-    .reduce((res, key) => ((res[key] = obj[key]), res), {});
 
 discordClient.on("ready", async () => {
   Array.prototype.min = function () {

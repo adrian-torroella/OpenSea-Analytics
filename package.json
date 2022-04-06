@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "engines":{
+    "node": "16.x"
+  },
   "scripts": {
     "start": "node .",
     "start-dev": "nodemon .",
@@ -16,6 +19,7 @@
     "@discordjs/builders": "^0.6.0",
     "@discordjs/rest": "^0.1.0-canary.0",
     "axios": "^0.21.4",
+    "bull": "^4.8.1",
     "discord-api-types": "^0.22.0",
     "discord.js": "^13.1.0",
     "dotenv": "^16.0.0",

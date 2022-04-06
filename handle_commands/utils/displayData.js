@@ -45,17 +45,26 @@ const constructEmbed = ({
   return embed;
 };
 
-module.exports = async (interaction, prices, timestamp) => {
+module.exports = async (
+  client,
+  channelId,
+  collection,
+  prices,
+  timestamp,
+  { start: passedStart, step, numberOfSteps }
+) => {
   const ranges = [];
-  const nonDefaultMin = interaction.options.getNumber("start") !== null;
-  const start = !nonDefaultMin
-    ? min(prices)
-    : interaction.options.getNumber("start");
-  const collection = interaction.options.getString("collection-name");
-  const step = interaction.options.getNumber("step");
-  const numberOfSteps = interaction.options.getNumber("number-of-steps");
+  const nonDefaultMin = passedStart !== null;
+  const start = !nonDefaultMin ? min(prices) : passedStart;
+  let channel;
+  try {
+    channel = await client.channels.fetch(channelId);
+  } catch (e) {
+    console.log(e);
+    return;
+  }
   if (start < 0 || numberOfSteps <= 0 || step <= 0)
-    return interaction.channel.send("Please enter valid numbers");
+    return channel.send("Please enter valid numbers");
   let i = start;
   let count = 0;
   while (count < numberOfSteps) {
@@ -80,7 +89,8 @@ module.exports = async (interaction, prices, timestamp) => {
     const sum = counts.reduce((a, b) => a + b, 0);
     counts.push(Object.keys(prices).length - sum);
   }
-  interaction.channel.send({
+
+  channel.send({
     content: " ",
     embeds: [
       constructEmbed({ collection, timestamp, ranges, counts, nonDefaultMin }),

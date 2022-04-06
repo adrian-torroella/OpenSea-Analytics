@@ -1,4 +1,5 @@
 const displayData = require("./utils/displayData.js");
+const discordClient = require("../client");
 const mongoClient = require("../db");
 
 module.exports = async (interaction) => {
@@ -35,7 +36,27 @@ module.exports = async (interaction) => {
       }
       const timestamp = returnedCollection.timestamp;
       returnedCollection = null;
-      displayData(interaction, prices, timestamp);
+      const channelId = interaction.channel.id;
+
+      const interactionOptionStart = interaction.options.getNumber("start");
+      const interactionOptionStep = interaction.options.getNumber("step");
+      const interactionOptionNumberOfSteps =
+        interaction.options.getNumber("number-of-steps");
+
+      const interactionOptions = {
+        start: interactionOptionStart,
+        step: interactionOptionStep,
+        numberOfSteps: interactionOptionNumberOfSteps,
+      };
+
+      displayData(
+        discordClient,
+        channelId,
+        enteredCollection,
+        prices,
+        timestamp,
+        interactionOptions
+      );
     });
   } catch (e) {
     console.log(e);
