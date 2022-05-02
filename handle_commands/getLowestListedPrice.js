@@ -1,7 +1,8 @@
 const { MessageEmbed } = require("discord.js");
-const mongoClient = require("../db");
 const getThreeSmallestItems = require("../utils/getThreeSmallestItems");
 const parseTraitsString = require("../utils/parseTraitsString");
+const readCollectionInfoFromDB = require("../utils/readCollectionInfoFromDB");
+const reportError = require("../utils/reportError");
 
 const generateEmbedFeilds = (lowestPrices, isPair) => {
   const fields = [];
@@ -48,75 +49,63 @@ module.exports = async (interaction) => {
   const enteredCollection = interaction.options.getString("collection-name");
   const traitsString = interaction.options.getString("traits");
 
-  await interaction.deferReply();
-  await interaction.editReply(`Searching for ${enteredCollection}`);
   try {
-    mongoClient.connect(async (e) => {
-      if (e) {
-        console.log(e);
-        if (e.message !== undefined) {
-          console.log(e.message);
-          interaction.followUp(e.message);
-        } else interaction.followUp("An error occured");
-        return;
-      }
-      const collection = mongoClient
-        .db("NFT-Database")
-        .collection("NFT Collections");
-      let returnedCollection = await collection.findOne({
-        collection: enteredCollection,
-      });
-      mongoClient.close();
-      if (returnedCollection === null)
-        return interaction.followUp(
-          `${enteredCollection} is not found, try using /fetchcollectioninfo`
+    await interaction.deferReply();
+    await interaction.editReply(`Searching for ${enteredCollection}`);
+    let returnedCollection = await readCollectionInfoFromDB(enteredCollection);
+    if (returnedCollection === null)
+      return interaction.followUp(
+        `${enteredCollection} is not found, try using /fetchcollectioninfo`
+      );
+    interaction.followUp(`Getting lowest prices, please wait.`);
+    const requiredTraits = parseTraitsString(traitsString);
+    const lowestThreePrices = {};
+    const isPair = requiredTraits.pairs;
+    const prices = {};
+    const traits = {};
+    for (const tokenId in returnedCollection.assets) {
+      if (returnedCollection.assets[tokenId].price)
+        prices[tokenId] = returnedCollection.assets[tokenId].price;
+      traits[tokenId] = {
+        ...returnedCollection.assets[tokenId].traits,
+      };
+    }
+    returnedCollection = null;
+    for (const requiredTraitIndex in requiredTraits) {
+      if (requiredTraitIndex === "pairs") continue;
+      if (isPair) {
+        for (const requiredTrait of requiredTraits[requiredTraitIndex]) {
+          lowestThreePrices[`${requiredTraitIndex}:${requiredTrait}`] =
+            getThreeSmallestItems(
+              prices,
+              traits,
+              requiredTraitIndex,
+              requiredTrait,
+              isPair
+            );
+        }
+      } else
+        lowestThreePrices[requiredTraitIndex] = getThreeSmallestItems(
+          prices,
+          traits,
+          requiredTraitIndex,
+          requiredTraits[requiredTraitIndex],
+          isPair
         );
-      interaction.followUp(`Getting lowest prices, please wait.`);
-      const requiredTraits = parseTraitsString(traitsString);
-      const lowestThreePrices = {};
-      const isPair = requiredTraits.pairs;
-      const prices = {};
-      const traits = {};
-      for (const tokenId in returnedCollection.assets) {
-        if (returnedCollection.assets[tokenId].price)
-          prices[tokenId] = returnedCollection.assets[tokenId].price;
-        traits[tokenId] = {
-          ...returnedCollection.assets[tokenId].traits,
-        };
-      }
-      returnedCollection = null;
-      for (const requiredTraitIndex in requiredTraits) {
-        if (requiredTraitIndex === "pairs") continue;
-        if (isPair) {
-          for (const requiredTrait of requiredTraits[requiredTraitIndex]) {
-            lowestThreePrices[`${requiredTraitIndex}:${requiredTrait}`] =
-              getThreeSmallestItems(
-                prices,
-                traits,
-                requiredTraitIndex,
-                requiredTrait,
-                isPair
-              );
-          }
-        } else
-          lowestThreePrices[requiredTraitIndex] = getThreeSmallestItems(
-            prices,
-            traits,
-            requiredTraitIndex,
-            requiredTraits[requiredTraitIndex],
-            isPair
-          );
-      }
-      interaction.followUp({
-        content: " ",
-        embeds: [displayPricesEmbed(lowestThreePrices, isPair)],
-      });
+    }
+    interaction.followUp({
+      content: " ",
+      embeds: [displayPricesEmbed(lowestThreePrices, isPair)],
     });
-  } catch (e) {
-    console.log(e);
-    if (e.message !== undefined) {
-      console.log(e.message);
-      interaction.editReply(e.message);
-    } else interaction.editReply("An error occured");
+  } catch (err) {
+    console.log(err);
+    if (err instanceof MongoError) {
+      reportError(
+        channelId,
+        "Error occured while connecting to the database, try again later."
+      );
+    } else {
+      reportError(channelId, "An unexpected error occured, try again later.");
+    }
   }
 };

@@ -11,15 +11,15 @@ const displayListOfDocuments = (documents) => {
     .setTitle("Fetched Collections")
     .setColor("#0099ff")
     .setTimestamp();
-  for (field of fields) embed = embed.addField(...field);
+  for (const field of fields) embed = embed.addField(...field);
   return embed;
 };
 
 module.exports = async (interaction) => {
   await interaction.deferReply();
-  mongoClient.connect(async (e) => {
-    if (e) {
-      console.log(e);
+  mongoClient.connect(async (err) => {
+    if (err) {
+      console.log(err);
       return interaction.editReply("An Error occured, try again later");
     }
     const collection = mongoClient

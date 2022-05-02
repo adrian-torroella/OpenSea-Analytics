@@ -1,5 +1,6 @@
 const axios = require("axios");
 const fetchQueueConsumer = require("../fetchQueueConsumer");
+const reportError = require("../utils/reportError");
 
 const raxConfig = {
   retry: 5,
@@ -31,8 +32,8 @@ const getNumberOfItemsAndContractAddress = async (enteredCollection) => {
 
 module.exports = async (interaction) => {
   const enteredCollection = interaction.options.getString("collection-name");
-  await interaction.deferReply();
   try {
+    await interaction.deferReply();
     const { numberOfItems, contractAddress } =
       await getNumberOfItemsAndContractAddress(enteredCollection);
     if (!numberOfItems) {
@@ -65,12 +66,8 @@ module.exports = async (interaction) => {
       cursor: null,
       interactionOptions,
     });
-  } catch (e) {
-    console.log(e);
-    console.log(e.response);
-    if (e.message !== undefined) {
-      console.log(e.message);
-      interaction.followUp(e.message);
-    } else interaction.followUp("An error occured");
+  } catch (err) {
+    console.log(err);
+    reportError(channelId, "An unexpected error occured, try again later.");
   }
 };

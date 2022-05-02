@@ -1,6 +1,6 @@
-const discordClient = require("./client");
+const discordClient = require("../client");
 
-const reportError = async (channelId, errorMessage) => {
+module.exports = async (channelId, errorMessage) => {
   try {
     const channel = await discordClient.channels.fetch(channelId);
     channel.send(errorMessage);

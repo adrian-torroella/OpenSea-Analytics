@@ -1,6 +1,6 @@
 const mongoClient = require("../db");
 
-module.exports = writeCollectionInfoToDB = ({
+module.exports = writeCollectionInfoToDB = async ({
   collectionName,
   contractAddress,
   assets,

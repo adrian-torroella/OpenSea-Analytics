@@ -2,6 +2,7 @@ const Queue = require("bull");
 const axios = require("axios");
 const writeCollectionInfoToDB = require("./utils/writeCollectionInfoToDB");
 const displayData = require("./utils/displayData.js");
+const reportError = require("./utils/reportError");
 const discordClient = require("./client");
 
 const headers = {
@@ -101,7 +102,7 @@ const consumerFunction = async (job) => {
     return;
   }
   try {
-    const timestamp = writeCollectionInfoToDB({
+    const timestamp = await writeCollectionInfoToDB({
       collectionName,
       contractAddress,
       assets,
@@ -120,11 +121,14 @@ const consumerFunction = async (job) => {
     );
   } catch (err) {
     console.log(err);
-    reportError(
-      channelId,
-      "Error occured while connecting to the database, try again later."
-    );
-    return;
+    if (err instanceof MongoError) {
+      reportError(
+        channelId,
+        "Error occured while connecting to the database, try again later."
+      );
+    } else {
+      reportError(channelId, "An unexpected error occured, try again later.");
+    }
   }
 };
 
