@@ -101,23 +101,31 @@ const consumerFunction = async (job) => {
     return;
   }
   try {
-    writeCollectionInfoToDB({ collectionName, contractAddress, assets });
+    const timestamp = writeCollectionInfoToDB({
+      collectionName,
+      contractAddress,
+      assets,
+    });
+    const prices = {};
+    for (const tokenId in assets) {
+      if (assets[tokenId].price) prices[tokenId] = assets[tokenId].price;
+    }
+    displayData(
+      discordClient,
+      channelId,
+      collectionName,
+      prices,
+      timestamp,
+      interactionOptions
+    );
   } catch (err) {
     console.log(err);
+    reportError(
+      channelId,
+      "Error occured while connecting to the database, try again later."
+    );
     return;
   }
-  const prices = {};
-  for (const tokenId in assets) {
-    if (assets[tokenId].price) prices[tokenId] = assets[tokenId].price;
-  }
-  displayData(
-    discordClient,
-    channelId,
-    collectionName,
-    prices,
-    timestamp,
-    interactionOptions
-  );
 };
 
 const redisURL = "redis://redis:6379";
