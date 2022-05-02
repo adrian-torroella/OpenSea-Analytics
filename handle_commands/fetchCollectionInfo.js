@@ -1,5 +1,5 @@
 const axios = require("axios");
-const consumer = require("../consumer");
+const fetchQueueConsumer = require("../fetchQueueConsumer");
 
 const raxConfig = {
   retry: 5,
@@ -56,7 +56,7 @@ module.exports = async (interaction) => {
       `Fetching data from ${enteredCollection}. Please wait, this could take a long time.`
     );
 
-    consumer.add({
+    fetchQueueConsumer.add({
       assets: {},
       begun: false,
       collectionName: enteredCollection,

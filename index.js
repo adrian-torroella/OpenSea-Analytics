@@ -1,6 +1,5 @@
 require("dotenv").config();
 const discordClient = require("./client");
-const fetchQueue = require("./consumer");
 
 const TOKEN = process.env.TOKEN || null;
 

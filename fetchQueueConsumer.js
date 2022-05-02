@@ -1,6 +1,6 @@
 const Queue = require("bull");
 const axios = require("axios");
-const mongoClient = require("./db");
+const writeCollectionInfoToDB = require("./utils/writeCollectionInfoToDB");
 const displayData = require("./utils/displayData.js");
 const discordClient = require("./client");
 
@@ -100,40 +100,24 @@ const consumerFunction = async (job) => {
     }
     return;
   }
-  mongoClient.connect(async (err) => {
-    if (err) return console.log(err);
-    const collection = mongoClient
-      .db("NFT-Database")
-      .collection("NFT Collections");
-    const timestamp = Date.now();
-    await collection.replaceOne(
-      {
-        collection: collectionName,
-      },
-      {
-        collection: collectionName,
-        contractAddress,
-        timestamp,
-        assets,
-      },
-      {
-        upsert: true,
-      }
-    );
-    mongoClient.close();
-    const prices = {};
-    for (const tokenId in assets) {
-      if (assets[tokenId].price) prices[tokenId] = assets[tokenId].price;
-    }
-    displayData(
-      discordClient,
-      channelId,
-      collectionName,
-      prices,
-      timestamp,
-      interactionOptions
-    );
-  });
+  try {
+    writeCollectionInfoToDB({ collectionName, contractAddress, assets });
+  } catch (err) {
+    console.log(err);
+    return;
+  }
+  const prices = {};
+  for (const tokenId in assets) {
+    if (assets[tokenId].price) prices[tokenId] = assets[tokenId].price;
+  }
+  displayData(
+    discordClient,
+    channelId,
+    collectionName,
+    prices,
+    timestamp,
+    interactionOptions
+  );
 };
 
 const redisURL = "redis://redis:6379";
