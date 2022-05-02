@@ -1,8 +1,8 @@
 const path = require("path");
 const fs = require("fs");
 const mongoClient = require("../db");
-const parseTraitsString = require("./utils/parseTraitsString");
-const generateCSVFile = require("./utils/generateCSVFile");
+const parseTraitsString = require("../utils/parseTraitsString");
+const generateCSVFile = require("../utils/generateCSVFile");
 
 module.exports = async (interaction) => {
   const enteredCollection = interaction.options.getString("collection-name");

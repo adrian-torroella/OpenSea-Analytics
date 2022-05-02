@@ -1,10 +1,10 @@
 const { MessageEmbed } = require("discord.js");
 const mongoClient = require("../db");
 
-const parseTraitsString = require("./utils/parseTraitsString");
-const getSingleHighestOffer = require("./utils/getSingleHighestOffer");
-const getHighestOffers = require("./utils/getHighestOffers");
-const getMinMaxMedian = require("./utils/getMinMaxMedian");
+const parseTraitsString = require("../utils/parseTraitsString");
+const getSingleHighestOffer = require("../utils/getSingleHighestOffer");
+const getHighestOffers = require("../utils/getHighestOffers");
+const getMinMaxMedian = require("../utils/getMinMaxMedian");
 
 const filterRequiredTraits = (
   assets,

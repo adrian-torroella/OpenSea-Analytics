@@ -1,7 +1,7 @@
 const { MessageEmbed } = require("discord.js");
 const mongoClient = require("../db");
-const getThreeSmallestItems = require("./utils/getThreeSmallestItems");
-const parseTraitsString = require("./utils/parseTraitsString");
+const getThreeSmallestItems = require("../utils/getThreeSmallestItems");
+const parseTraitsString = require("../utils/parseTraitsString");
 
 const generateEmbedFeilds = (lowestPrices, isPair) => {
   const fields = [];

@@ -1,4 +1,4 @@
-const displayData = require("./utils/displayData.js");
+const displayData = require("../utils/displayData.js");
 const discordClient = require("../client");
 const mongoClient = require("../db");
 

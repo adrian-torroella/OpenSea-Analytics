@@ -1,7 +1,7 @@
 const Queue = require("bull");
 const axios = require("axios");
 const mongoClient = require("./db");
-const displayData = require("./handle_commands/utils/displayData.js");
+const displayData = require("./utils/displayData.js");
 const discordClient = require("./client");
 
 const headers = {
