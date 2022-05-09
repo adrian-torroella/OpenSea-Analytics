@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const applyNumericFilters = require("../utils/applyNumericFilters");
 const parseTraitsString = require("../utils/parseTraitsString");
 const generateCSVFile = require("../utils/generateCSVFile");
 const readCollectionInfoFromDB = require("../utils/readCollectionInfoFromDB");
@@ -20,13 +21,14 @@ module.exports = async (interaction) => {
     interaction.followUp(
       `Generating CSV file for ${enteredCollection} with tratis ${traitsString}, please wait.`
     );
+    const filteredAssets = applyNumericFilters(assets);
+    returnedCollection = null;
     const traits = {};
-    for (const tokenId in returnedCollection.assets) {
+    for (const tokenId in filteredAssets) {
       traits[tokenId] = {
-        ...returnedCollection.assets[tokenId].traits,
+        ...filteredAssets[tokenId].traits,
       };
     }
-    returnedCollection = null;
     const requiredTraits = parseTraitsString(traitsString);
     const id = await generateCSVFile(enteredCollection, traits, requiredTraits);
     try {

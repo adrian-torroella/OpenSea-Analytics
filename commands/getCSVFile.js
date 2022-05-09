@@ -16,4 +16,12 @@ module.exports = new SlashCommandBuilder()
       .setName("traits")
       .setDescription("Enter the desired traits seperated by semicolons")
       .setRequired(true)
+  )
+  .addStringOption((option) =>
+    option
+      .setName("trait-numeric-filters")
+      .setDescription(
+        "Enter the desired numeric filters on traits seperated by semicolons"
+      )
+      .setRequired(false)
   );

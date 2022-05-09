@@ -20,13 +20,15 @@ module.exports = async (interaction) => {
     interaction.followUp(
       `Generating CSV file for ${enteredCollection} with tratis ${traitsString}, please wait.`
     );
+
+    const filteredAssets = applyNumericFilters(assets);
+    returnedCollection = null;
     const traits = {};
-    for (const tokenId in returnedCollection.assets) {
+    for (const tokenId in filteredAssets) {
       traits[tokenId] = {
-        ...returnedCollection.assets[tokenId].traits,
+        ...filteredAssets[tokenId].traits,
       };
     }
-    returnedCollection = null;
     const requiredTraits = parseTraitsString(traitsString);
     delete requiredTraits.pairs;
     const id = await generateCSVFile(enteredCollection, traits, requiredTraits);
