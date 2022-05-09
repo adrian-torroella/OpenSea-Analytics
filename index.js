@@ -12,9 +12,6 @@ const handleGetLowestListedPrice = require("./handle_commands/getLowestListedPri
 const handleGetHighestOffersInfo = require("./handle_commands/getHighestOffersInfo");
 
 discordClient.on("ready", async () => {
-  Array.prototype.min = function () {
-    return Math.min.apply(null, this);
-  };
   console.log(`Logged in as ${discordClient.user.tag}!`);
 });
 
