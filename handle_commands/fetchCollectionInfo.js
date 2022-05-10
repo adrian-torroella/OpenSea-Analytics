@@ -32,6 +32,7 @@ const getNumberOfItemsAndContractAddress = async (enteredCollection) => {
 
 module.exports = async (interaction) => {
   const enteredCollection = interaction.options.getString("collection-name");
+  const channelId = interaction.channel.id;
   try {
     await interaction.deferReply();
     const { numberOfItems, contractAddress } =

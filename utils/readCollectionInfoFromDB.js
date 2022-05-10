@@ -1,14 +1,37 @@
 const mongoClient = require("../db");
 
 module.exports = async (collectionName) => {
-  let returnedCollection;
+  let returnedCollections;
   await mongoClient.connect();
   const collection = mongoClient
     .db("NFT-Database")
     .collection("NFT Collections");
-  returnedCollection = await collection.findOne({
-    collection: collectionName,
-  });
+  returnedCollections = await collection
+    .find({
+      collection: collectionName,
+    })
+    .toArray();
+
   mongoClient.close();
-  return returnedCollection;
+  if (returnedCollections.length === 1) {
+    return returnedCollections[0];
+  } else {
+    const { assets: _, ...rest } = returnedCollections[0];
+    let returnedCollection = {
+      ...rest,
+    };
+    const assetsChunks = returnedCollections.map(
+      (returnedCollection) => returnedCollection.assets
+    );
+    for (const assetChunk of assetsChunks) {
+      returnedCollection = {
+        ...returnedCollection,
+        assets: {
+          ...returnedCollection.assets,
+          ...assetChunk,
+        },
+      };
+    }
+    return returnedCollection;
+  }
 };
