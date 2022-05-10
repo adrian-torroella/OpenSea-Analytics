@@ -13,7 +13,9 @@ module.exports = async (collectionName) => {
     .toArray();
 
   mongoClient.close();
-  if (returnedCollections.length === 1) {
+  if (returnedCollections.length === 0) {
+    return null;
+  } else if (returnedCollections.length === 1) {
     return returnedCollections[0];
   } else {
     const { assets: _, ...rest } = returnedCollections[0];
