@@ -1,5 +1,8 @@
 const path = require("path");
 const fs = require("fs");
+
+const { MongoError } = require("mongodb");
+
 const parseTraitsString = require("../utils/parseTraitsString");
 const generateCSVFile = require("../utils/generateComplexCSVFile");
 const readCollectionInfoFromDB = require("../utils/readCollectionInfoFromDB");
@@ -21,7 +24,7 @@ module.exports = async (interaction) => {
       `Generating CSV file for ${enteredCollection} with tratis ${traitsString}, please wait.`
     );
 
-    const filteredAssets = applyNumericFilters(assets);
+    const filteredAssets = applyNumericFilters(returnedCollection.assets);
     returnedCollection = null;
     const traits = {};
     for (const tokenId in filteredAssets) {

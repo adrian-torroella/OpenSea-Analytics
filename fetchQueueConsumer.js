@@ -1,4 +1,6 @@
 const Queue = require("bull");
+const { MongoError } = require("mongodb");
+
 const axios = require("axios");
 const writeCollectionInfoToDB = require("./utils/writeCollectionInfoToDB");
 const displayData = require("./utils/displayData.js");

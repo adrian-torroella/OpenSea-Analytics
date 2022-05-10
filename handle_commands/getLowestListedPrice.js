@@ -1,4 +1,6 @@
 const { MessageEmbed } = require("discord.js");
+const { MongoError } = require("mongodb");
+
 const getThreeSmallestItems = require("../utils/getThreeSmallestItems");
 const parseTraitsString = require("../utils/parseTraitsString");
 const readCollectionInfoFromDB = require("../utils/readCollectionInfoFromDB");
