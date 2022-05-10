@@ -2,8 +2,9 @@ const parseFiltersString = require("./parseNumericFilterString");
 
 const isNumber = (x) => typeof x === "number";
 
-module.exports = (assets, filtersString) => {
-  const numericFilters = parseFiltersString(filtersString);
+module.exports = (assets, numericfiltersString) => {
+  if (numericfiltersString === null) return { ...assets };
+  const numericFilters = parseFiltersString(numericfiltersString);
   const filteredAssets = {};
   let removeAsset;
   for (const tokenId in assets) {

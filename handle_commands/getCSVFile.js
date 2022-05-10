@@ -12,6 +12,9 @@ const reportError = require("../utils/reportError");
 module.exports = async (interaction) => {
   const enteredCollection = interaction.options.getString("collection-name");
   const traitsString = interaction.options.getString("traits");
+  const numericFiltersString = interaction.options.getString(
+    "trait-numeric-filters"
+  );
   const channelId = interaction.channel.id;
   try {
     await interaction.deferReply();
@@ -24,7 +27,10 @@ module.exports = async (interaction) => {
     interaction.followUp(
       `Generating CSV file for ${enteredCollection} with tratis ${traitsString}, please wait.`
     );
-    const filteredAssets = applyNumericFilters(returnedCollection.assets);
+    const filteredAssets = applyNumericFilters(
+      returnedCollection.assets,
+      numericFiltersString
+    );
     returnedCollection = null;
     const traits = {};
     for (const tokenId in filteredAssets) {
