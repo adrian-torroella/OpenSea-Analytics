@@ -3,6 +3,7 @@ const fs = require("fs");
 
 const { MongoError } = require("mongodb");
 
+const applyNumericFilters = require("../utils/applyNumericFilters");
 const parseTraitsString = require("../utils/parseTraitsString");
 const generateCSVFile = require("../utils/generateComplexCSVFile");
 const readCollectionInfoFromDB = require("../utils/readCollectionInfoFromDB");
